@@ -1,0 +1,14 @@
+{
+  "name": "netflix-account-generator",
+  "version": "1.0.0", 
+  "description": "Free Netflix accounts generator",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/node": "^2.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
